@@ -4,7 +4,7 @@ Two apps, two subdomains on the same Hostinger Cloud plan:
 
 | App | Domain | Stack | Document / App root |
 | --- | --- | --- | --- |
-| API | `api.a7mdgmal.online` | Laravel (PHP 8.2+) | `backend/public` |
+| API | `api3.a7mdgmal.online` | Laravel (PHP 8.2+) | `backend/public` |
 | Frontend | `a7mdgmal.online` | Next.js (Node 20) | repo root (`logistec16`) |
 
 > They share the registrable domain `a7mdgmal.online`. Auth uses **Bearer tokens** (no cookies), so
@@ -13,16 +13,16 @@ Two apps, two subdomains on the same Hostinger Cloud plan:
 ---
 
 ## 0. Prerequisites (hPanel)
-1. **Subdomains:** create `api.a7mdgmal.online`. Keep `a7mdgmal.online` as the main domain.
+1. **Subdomains:** create `api3.a7mdgmal.online`. Keep `a7mdgmal.online` as the main domain.
 2. **MySQL:** hPanel → Databases → create DB + user (note name/user/password).
-3. **SSL:** enable free SSL for both `a7mdgmal.online` and `api.a7mdgmal.online`.
+3. **SSL:** enable free SSL for both `a7mdgmal.online` and `api3.a7mdgmal.online`.
 4. **PHP version:** set the `api` subdomain to PHP **8.2+** with `pdo_mysql`, `mbstring`, `openssl`, `curl`, `fileinfo`.
 5. **Node version:** ensure Node **20.x** is available (hPanel → Advanced → Node.js).
 6. Upload the project (git clone or the file manager) to e.g. `~/repos/logistec16`.
 
 ---
 
-## 1. Backend — `api.a7mdgmal.online`
+## 1. Backend — `api3.a7mdgmal.online`
 
 Point the subdomain's **document root** to `~/repos/logistec16/backend/public`.
 
@@ -35,7 +35,7 @@ php artisan key:generate
 
 # Edit .env and set:
 #   APP_ENV=production   APP_DEBUG=false
-#   APP_URL=https://api.a7mdgmal.online
+#   APP_URL=https://api3.a7mdgmal.online
 #   FRONTEND_URL=https://a7mdgmal.online
 #   DB_CONNECTION=mysql  DB_DATABASE=...  DB_USERNAME=...  DB_PASSWORD=...
 #   AUTHENTICA_ENABLED=true  AUTHENTICA_API_KEY=...  AUTHENTICA_TEMPLATE_ID=...
@@ -55,7 +55,7 @@ chmod -R 775 storage bootstrap/cache
 - If the subdomain root can't be `backend/public`, add `backend/public/.htaccess` (Laravel ships one) and a
   redirect, or symlink the docroot to `backend/public`.
 
-**Verify:** `curl https://api.a7mdgmal.online/api/banners` → JSON `{"data":[...]}`.
+**Verify:** `curl https://api3.a7mdgmal.online/api/banners` → JSON `{"data":[...]}`.
 
 ---
 
@@ -64,7 +64,7 @@ chmod -R 775 storage bootstrap/cache
 Configure a **Node.js application** in hPanel (or PM2) with:
 - **Application root:** `~/repos/logistec16`
 - **Startup file / command:** `npm run start` (Next.js `next start`; it honors the `PORT` Hostinger assigns)
-- **Environment variable:** `NEXT_PUBLIC_API_URL=https://api.a7mdgmal.online/api`
+- **Environment variable:** `NEXT_PUBLIC_API_URL=https://api3.a7mdgmal.online/api`
   (already in `.env.production`, but set it in the panel too so it's present at build time)
 
 ```bash
@@ -85,7 +85,7 @@ register → OTP (real SMS) → login works, WhatsApp/Call buttons work.
 
 ## 3. CORS / domains checklist
 - API `.env` `FRONTEND_URL=https://a7mdgmal.online` (add `,https://www.a7mdgmal.online` if you use www).
-- Frontend `NEXT_PUBLIC_API_URL=https://api.a7mdgmal.online/api`.
+- Frontend `NEXT_PUBLIC_API_URL=https://api3.a7mdgmal.online/api`.
 - Both subdomains on HTTPS.
 
 ## 4. Updating after changes
