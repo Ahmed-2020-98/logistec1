@@ -44,14 +44,14 @@ export function ServiceRequestForm({
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return setError("الرجاء إدخال الاسم");
     if (!isValidSaudiPhone(mobile)) return setError("رقم الجوال غير صحيح");
     if (type === "transport" && (!fromCity || !toCity))
       return setError("الرجاء تحديد مدينتي الانطلاق والوصول");
 
-    store.addServiceRequest({
+    const created = await store.addServiceRequest({
       type,
       scope: type === "transport" ? scope : undefined,
       fromCity: type === "transport" ? fromCity : undefined,
@@ -62,8 +62,8 @@ export function ServiceRequestForm({
       name: name.trim(),
       mobile: normalizePhone(mobile),
       notes: notes.trim(),
-      userId: user?.id ?? null,
     });
+    if (!created) return setError("تعذّر إرسال الطلب، حاول مرة أخرى");
     toast("تم إرسال طلبك بنجاح، سنتواصل معك قريباً");
     onSuccess?.();
   }

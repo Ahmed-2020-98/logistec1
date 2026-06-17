@@ -14,15 +14,15 @@ export default function AdminUsersPage() {
   const { user: me } = useAuth();
   const toast = useToast();
 
-  function toggleRole(u: User) {
-    store.updateUser({ ...u, role: u.role === "admin" ? "user" : "admin" });
+  async function toggleRole(u: User) {
+    await store.updateUser({ ...u, role: u.role === "admin" ? "user" : "admin" });
     toast("تم تحديث صلاحية المستخدم", "info");
   }
 
-  function remove(u: User) {
+  async function remove(u: User) {
     if (u.id === me?.id) return toast("لا يمكنك حذف حسابك الحالي", "error");
     if (confirm(`حذف المستخدم "${u.fullName}"؟`)) {
-      store.deleteUser(u.id);
+      await store.deleteUser(u.id);
       toast("تم حذف المستخدم", "info");
     }
   }

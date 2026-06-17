@@ -8,6 +8,7 @@ import { Card, Badge, EmptyState } from "@/components/ui/Card";
 import { Icon, type IconName } from "@/components/ui/Icon";
 import { buttonClass } from "@/components/ui/Button";
 import { useStore } from "@/lib/store/StoreProvider";
+import { PLACEHOLDER_IMG } from "@/components/ads/AdCards";
 import { AD_CATEGORY_LABELS, SALE_KINDS, labelOf } from "@/lib/constants";
 import {
   cn,
@@ -88,7 +89,7 @@ export function AdDetails() {
             <Card className="overflow-hidden">
               <div className="aspect-[16/10] bg-navy-900/5">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={ad.images[activeImg]} alt={ad.title} className="size-full object-cover" />
+                <img src={ad.images[activeImg] ?? PLACEHOLDER_IMG} alt={ad.title} className="size-full object-cover" />
               </div>
               {ad.images.length > 1 && (
                 <div className="flex gap-2 overflow-x-auto p-3">

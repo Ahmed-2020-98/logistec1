@@ -3,6 +3,7 @@
 # dependencies
 /node_modules
 /.npm-cache
+/.composer-cache
 /.pnp
 .pnp.*
 .yarn/*
@@ -33,6 +34,12 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+!.env.production
+
+# laravel backend (has its own .gitignore; ignore heavy/secret bits here too)
+/backend/vendor
+/backend/node_modules
 
 # vercel
 .vercel

@@ -22,9 +22,9 @@ export default function AdminAdsPage() {
   const toast = useToast();
   const [tab, setTab] = useState<AdCategory>("transport");
 
-  function remove(category: AdCategory, id: string) {
+  async function remove(category: AdCategory, id: string) {
     if (confirm("حذف هذا الإعلان؟")) {
-      store.deleteAd(category, id);
+      await store.deleteAd(category, id);
       toast("تم حذف الإعلان", "info");
     }
   }

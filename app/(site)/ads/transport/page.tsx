@@ -4,13 +4,14 @@ import { useMemo, useState } from "react";
 import { PageHero } from "@/components/layout/PageHero";
 import { Container } from "@/components/ui/Container";
 import { Card, EmptyState } from "@/components/ui/Card";
+import { Spinner } from "@/components/ui/Spinner";
 import { Select } from "@/components/ui/Field";
 import { TransportAdCard } from "@/components/ads/AdCards";
 import { useStore } from "@/lib/store/StoreProvider";
 import { SAUDI_CITIES } from "@/lib/constants";
 
 export default function TransportAdsPage() {
-  const { transportAds } = useStore();
+  const { transportAds, ready } = useStore();
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
 
@@ -31,7 +32,9 @@ export default function TransportAdsPage() {
           <FilterSelect label="إلى مدينة" value={to} onChange={setTo} />
         </Card>
 
-        {filtered.length === 0 ? (
+        {!ready ? (
+          <Spinner />
+        ) : filtered.length === 0 ? (
           <EmptyState title="لا توجد إعلانات مطابقة" description="جرّب تغيير عوامل التصفية." />
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">

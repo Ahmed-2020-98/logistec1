@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { PageHero } from "@/components/layout/PageHero";
 import { Container } from "@/components/ui/Container";
 import { Card, EmptyState } from "@/components/ui/Card";
+import { Spinner } from "@/components/ui/Spinner";
 import { Select } from "@/components/ui/Field";
 import { SaleAdCard } from "@/components/ads/AdCards";
 import { useStore } from "@/lib/store/StoreProvider";
@@ -11,7 +12,7 @@ import { SALE_KINDS, SAUDI_CITIES } from "@/lib/constants";
 import type { SaleKind } from "@/lib/types";
 
 export default function SaleAdsPage() {
-  const { saleAds } = useStore();
+  const { saleAds, ready } = useStore();
   const [kind, setKind] = useState<SaleKind | "">("");
   const [location, setLocation] = useState("");
 
@@ -50,7 +51,9 @@ export default function SaleAdsPage() {
           </Select>
         </Card>
 
-        {filtered.length === 0 ? (
+        {!ready ? (
+          <Spinner />
+        ) : filtered.length === 0 ? (
           <EmptyState title="لا توجد إعلانات مطابقة" description="جرّب تغيير عوامل التصفية." />
         ) : (
           <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">

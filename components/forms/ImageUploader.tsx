@@ -1,43 +1,49 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/ui/Icon";
-import { fileToDataUrl } from "@/lib/utils";
 
 const MAX = 5;
-const MAX_BYTES = 1.5 * 1024 * 1024; // keep localStorage usage reasonable
+const MAX_BYTES = 2 * 1024 * 1024; // matches the API's per-image limit
 
 export function ImageUploader({
   value,
   onChange,
   onError,
 }: {
-  value: string[];
-  onChange: (urls: string[]) => void;
+  value: File[];
+  onChange: (files: File[]) => void;
   onError?: (msg: string) => void;
 }) {
   const ref = useRef<HTMLInputElement>(null);
+  const [previews, setPreviews] = useState<string[]>([]);
 
-  async function handleFiles(files: FileList | null) {
+  // Build (and revoke) object URLs for previews.
+  useEffect(() => {
+    const urls = value.map((f) => URL.createObjectURL(f));
+    setPreviews(urls);
+    return () => urls.forEach((u) => URL.revokeObjectURL(u));
+  }, [value]);
+
+  function handleFiles(files: FileList | null) {
     if (!files) return;
     const room = MAX - value.length;
-    const picked = Array.from(files).slice(0, room);
-    const urls: string[] = [];
-    for (const f of picked) {
+    const picked: File[] = [];
+    for (const f of Array.from(files).slice(0, room)) {
       if (f.size > MAX_BYTES) {
-        onError?.("بعض الصور كبيرة جداً (الحد الأقصى 1.5 ميجابايت لكل صورة)");
+        onError?.("بعض الصور كبيرة جداً (الحد الأقصى 2 ميجابايت لكل صورة)");
         continue;
       }
-      urls.push(await fileToDataUrl(f));
+      picked.push(f);
     }
-    onChange([...value, ...urls]);
+    onChange([...value, ...picked]);
     if (ref.current) ref.current.value = "";
   }
 
   return (
     <div>
       <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
-        {value.map((url, i) => (
+        {previews.map((url, i) => (
           <div key={i} className="relative aspect-square overflow-hidden rounded-xl border border-line">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={url} alt={`صورة ${i + 1}`} className="size-full object-cover" />

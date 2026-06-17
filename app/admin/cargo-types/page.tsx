@@ -16,24 +16,24 @@ export default function AdminCargoTypesPage() {
   const [editId, setEditId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
 
-  function add(e: React.FormEvent) {
+  async function add(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
-    store.saveCargoType({ id: store.newId(), name: name.trim() });
+    await store.saveCargoType({ name: name.trim() });
     setName("");
     toast("تمت إضافة نوع الحمولة");
   }
 
-  function saveEdit(c: CargoType) {
+  async function saveEdit(c: CargoType) {
     if (!editName.trim()) return;
-    store.saveCargoType({ ...c, name: editName.trim() });
+    await store.saveCargoType({ id: c.id, name: editName.trim() });
     setEditId(null);
     toast("تم التحديث", "info");
   }
 
-  function remove(id: string) {
+  async function remove(id: string) {
     if (confirm("حذف هذا النوع؟")) {
-      store.deleteCargoType(id);
+      await store.deleteCargoType(id);
       toast("تم الحذف", "info");
     }
   }

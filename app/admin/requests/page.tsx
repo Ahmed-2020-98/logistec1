@@ -15,9 +15,9 @@ export default function AdminRequestsPage() {
   const store = useStore();
   const toast = useToast();
 
-  function remove(id: string) {
+  async function remove(id: string) {
     if (confirm("حذف هذا الطلب؟")) {
-      store.deleteServiceRequest(id);
+      await store.deleteServiceRequest(id);
       toast("تم حذف الطلب", "info");
     }
   }

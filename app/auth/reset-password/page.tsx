@@ -9,7 +9,6 @@ import { Icon } from "@/components/ui/Icon";
 import { OtpInput } from "@/components/ui/OtpInput";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { useToast } from "@/components/ui/Toast";
-import { DEMO_OTP } from "@/lib/constants";
 import { displayPhone } from "@/lib/utils";
 
 export default function ResetPasswordPage() {
@@ -26,10 +25,10 @@ export default function ResetPasswordPage() {
     if (ready && !pendingPhone) router.replace("/auth/forgot-password");
   }, [ready, pendingPhone, router]);
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (password !== confirm) return setError("كلمتا المرور غير متطابقتين");
-    const res = resetPassword(code, password);
+    const res = await resetPassword(code, password);
     if (!res.ok) return setError(res.error);
     toast("تم تغيير كلمة المرور بنجاح، سجّل الدخول الآن");
     router.push("/auth/login");
@@ -38,7 +37,7 @@ export default function ResetPasswordPage() {
   function resend() {
     if (pendingPhone) {
       requestOtp(pendingPhone);
-      toast(`تم إرسال رمز جديد (رمز التجربة: ${DEMO_OTP})`, "info");
+      toast("تم إرسال رمز جديد", "info");
     }
   }
 
@@ -55,10 +54,6 @@ export default function ResetPasswordPage() {
         </span>{" "}
         وكلمة المرور الجديدة.
       </p>
-
-      <div className="mt-3 rounded-xl border border-dashed border-gold-400 bg-gold-500/10 px-4 py-2.5 text-sm font-semibold text-navy-800">
-        🔐 للتجربة استخدم الرمز: <span className="font-extrabold tracking-widest">{DEMO_OTP}</span>
-      </div>
 
       <form onSubmit={submit} className="mt-6 space-y-4">
         <OtpInput onChange={setCode} />

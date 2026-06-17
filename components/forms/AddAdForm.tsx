@@ -55,8 +55,9 @@ export function AddAdForm({ defaultCategory = "transport" }: { defaultCategory?:
       {category === "transport" && (
         <TransportForm
           phone={user?.phone ?? ""}
-          onSubmit={(data) => {
-            const ad = store.addTransportAd({ ...data, userId: user?.id ?? null });
+          onSubmit={async (data) => {
+            const ad = await store.addTransportAd(data);
+            if (!ad) return toast("تعذّر نشر الإعلان، حاول مرة أخرى", "error");
             toast("تم نشر إعلان النقل بنجاح");
             router.push(`/ads/transport/${ad.id}`);
           }}
@@ -66,8 +67,9 @@ export function AddAdForm({ defaultCategory = "transport" }: { defaultCategory?:
       {category === "customs" && (
         <CustomsForm
           phone={user?.phone ?? ""}
-          onSubmit={(data) => {
-            const ad = store.addCustomsAd({ ...data, userId: user?.id ?? null });
+          onSubmit={async (data) => {
+            const ad = await store.addCustomsAd(data);
+            if (!ad) return toast("تعذّر نشر الإعلان، حاول مرة أخرى", "error");
             toast("تم نشر إعلان التخليص بنجاح");
             router.push(`/ads/customs/${ad.id}`);
           }}
@@ -76,8 +78,9 @@ export function AddAdForm({ defaultCategory = "transport" }: { defaultCategory?:
       {category === "sale" && (
         <SaleForm
           phone={user?.phone ?? ""}
-          onSubmit={(data) => {
-            const ad = store.addSaleAd({ ...data, userId: user?.id ?? null });
+          onSubmit={async (data) => {
+            const ad = await store.addSaleAd(data);
+            if (!ad) return toast("تعذّر نشر الإعلان، حاول مرة أخرى", "error");
             toast("تم نشر إعلان البيع بنجاح");
             router.push(`/ads/sale/${ad.id}`);
           }}
@@ -262,7 +265,7 @@ function SaleForm({
     price: string;
     location: string;
     description: string;
-    images: string[];
+    imageFiles: File[];
     phone: string;
   }) => void;
 }) {
@@ -272,7 +275,7 @@ function SaleForm({
   const [price, setPrice] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState<File[]>([]);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -284,7 +287,7 @@ function SaleForm({
       price: price.trim(),
       location,
       description: description.trim(),
-      images: images.length ? images : ["https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=900&q=70"],
+      imageFiles: images,
       phone: normalizePhone(phone),
     });
   }

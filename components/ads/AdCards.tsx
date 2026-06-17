@@ -5,6 +5,9 @@ import { SALE_KINDS, labelOf } from "@/lib/constants";
 import { formatDate, formatPrice, timeAgo } from "@/lib/utils";
 import type { CustomsAd, SaleAd, TransportAd } from "@/lib/types";
 
+export const PLACEHOLDER_IMG =
+  "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=900&q=70";
+
 function DetailsLink({ href }: { href: string }) {
   return (
     <GuardedLink
@@ -85,7 +88,7 @@ export function SaleAdCard({ ad }: { ad: SaleAd }) {
       <div className="relative aspect-[4/3] overflow-hidden bg-navy-900/5">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={ad.images[0]}
+          src={ad.images[0] ?? PLACEHOLDER_IMG}
           alt={ad.title}
           className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
         />

@@ -20,9 +20,9 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const res = login(phone, password);
+    const res = await login(phone, password);
     if (!res.ok) {
       setError(res.error);
       if (res.error.includes("غير مُفعّل")) router.push("/auth/verify-otp");
@@ -65,15 +65,17 @@ export default function LoginPage() {
         </Button>
       </form>
 
-      <div className="mt-5 rounded-xl bg-navy-900/5 p-4 text-xs text-navy-700">
-        <p className="mb-1 font-extrabold">حسابات تجريبية:</p>
-        <p>
-          مستخدم: <span dir="ltr" className="font-bold">{displayPhone(USER_DEMO.phone)}</span> / {USER_DEMO.password}
-        </p>
-        <p>
-          مدير: <span dir="ltr" className="font-bold">{displayPhone(ADMIN_DEMO.phone)}</span> / {ADMIN_DEMO.password}
-        </p>
-      </div>
+      {process.env.NODE_ENV !== "production" && (
+        <div className="mt-5 rounded-xl bg-navy-900/5 p-4 text-xs text-navy-700">
+          <p className="mb-1 font-extrabold">حسابات تجريبية:</p>
+          <p>
+            مستخدم: <span dir="ltr" className="font-bold">{displayPhone(USER_DEMO.phone)}</span> / {USER_DEMO.password}
+          </p>
+          <p>
+            مدير: <span dir="ltr" className="font-bold">{displayPhone(ADMIN_DEMO.phone)}</span> / {ADMIN_DEMO.password}
+          </p>
+        </div>
+      )}
 
       <p className="mt-5 text-center text-sm text-muted">
         ليس لديك حساب؟{" "}

@@ -17,10 +17,10 @@ export default function ChangePasswordPage() {
 
   if (!user) return null;
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (next !== confirm) return setError("كلمتا المرور غير متطابقتين");
-    const res = changePassword(current, next);
+    const res = await changePassword(current, next);
     if (!res.ok) return setError(res.error);
     setError("");
     setCurrent("");

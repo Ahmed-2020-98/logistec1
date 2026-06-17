@@ -18,9 +18,9 @@ export default function MyRequestsPage() {
 
   const myRequests = store.serviceRequests.filter((r) => r.userId === user.id);
 
-  function remove(id: string) {
+  async function remove(id: string) {
     if (confirm("هل تريد حذف هذا الطلب؟")) {
-      store.deleteServiceRequest(id);
+      await store.deleteServiceRequest(id);
       toast("تم حذف الطلب", "info");
     }
   }

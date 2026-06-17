@@ -22,9 +22,9 @@ export default function MyAdsPage() {
   const s = store.saleAds.filter((a) => mine(a.userId));
   const total = t.length + c.length + s.length;
 
-  function remove(category: AdCategory, id: string) {
+  async function remove(category: AdCategory, id: string) {
     if (confirm("هل تريد حذف هذا الإعلان؟")) {
-      store.deleteAd(category, id);
+      await store.deleteAd(category, id);
       toast("تم حذف الإعلان", "info");
     }
   }

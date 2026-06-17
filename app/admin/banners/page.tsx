@@ -18,15 +18,16 @@ export default function AdminBannersPage() {
   const toast = useToast();
   const [editing, setEditing] = useState<Banner | null>(null);
 
-  function save(b: Banner) {
-    store.saveBanner({ ...b, id: b.id || store.newId() });
+  async function save(b: Banner) {
+    const ok = await store.saveBanner(b);
+    if (!ok) return toast("تعذّر حفظ البانر", "error");
     toast(b.id ? "تم تحديث البانر" : "تمت إضافة البانر");
     setEditing(null);
   }
 
-  function remove(id: string) {
+  async function remove(id: string) {
     if (confirm("حذف هذا البانر؟")) {
-      store.deleteBanner(id);
+      await store.deleteBanner(id);
       toast("تم حذف البانر", "info");
     }
   }

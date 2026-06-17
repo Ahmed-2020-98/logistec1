@@ -4,13 +4,14 @@ import { useMemo, useState } from "react";
 import { PageHero } from "@/components/layout/PageHero";
 import { Container } from "@/components/ui/Container";
 import { Card, EmptyState } from "@/components/ui/Card";
+import { Spinner } from "@/components/ui/Spinner";
 import { Select } from "@/components/ui/Field";
 import { CustomsAdCard } from "@/components/ads/AdCards";
 import { useStore } from "@/lib/store/StoreProvider";
 import { SAUDI_PORTS } from "@/lib/constants";
 
 export default function CustomsAdsPage() {
-  const { customsAds } = useStore();
+  const { customsAds, ready } = useStore();
   const [port, setPort] = useState("");
 
   const filtered = useMemo(
@@ -33,7 +34,9 @@ export default function CustomsAdsPage() {
           </Select>
         </Card>
 
-        {filtered.length === 0 ? (
+        {!ready ? (
+          <Spinner />
+        ) : filtered.length === 0 ? (
           <EmptyState title="لا توجد إعلانات مطابقة" description="جرّب تغيير الميناء." />
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

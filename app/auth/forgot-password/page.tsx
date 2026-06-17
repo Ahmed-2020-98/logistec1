@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { useToast } from "@/components/ui/Toast";
-import { DEMO_OTP } from "@/lib/constants";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -19,12 +18,12 @@ export default function ForgotPasswordPage() {
   const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const res = requestOtp(phone);
+    const res = await requestOtp(phone);
     if (!res.ok) return setError(res.error);
     setError("");
-    toast(`تم إرسال رمز التحقق (رمز التجربة: ${DEMO_OTP})`, "info");
+    toast("تم إرسال رمز التحقق إلى جوالك", "info");
     router.push("/auth/reset-password");
   }
 

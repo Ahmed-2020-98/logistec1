@@ -20,10 +20,10 @@ export default function RegisterPage() {
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (password !== confirm) return setError("كلمتا المرور غير متطابقتين");
-    const res = register({ fullName, phone, password });
+    const res = await register({ fullName, phone, password });
     if (!res.ok) return setError(res.error);
     toast("تم إنشاء الحساب، أدخل رمز التحقق");
     router.push("/auth/verify-otp");

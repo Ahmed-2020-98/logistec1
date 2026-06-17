@@ -18,15 +18,16 @@ export default function AdminQuickLinksPage() {
   const toast = useToast();
   const [editing, setEditing] = useState<QuickLink | null>(null);
 
-  function save(q: QuickLink) {
-    store.saveQuickLink({ ...q, id: q.id || store.newId() });
+  async function save(q: QuickLink) {
+    const ok = await store.saveQuickLink(q);
+    if (!ok) return toast("تعذّر حفظ الرابط", "error");
     toast(q.id ? "تم تحديث الرابط" : "تمت إضافة الرابط");
     setEditing(null);
   }
 
-  function remove(id: string) {
+  async function remove(id: string) {
     if (confirm("حذف هذا الرابط؟")) {
-      store.deleteQuickLink(id);
+      await store.deleteQuickLink(id);
       toast("تم حذف الرابط", "info");
     }
   }

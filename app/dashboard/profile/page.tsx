@@ -18,9 +18,9 @@ export default function ProfilePage() {
 
   if (!user) return null;
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const res = updateProfile({ fullName, phone });
+    const res = await updateProfile({ fullName, phone });
     if (!res.ok) return setError(res.error);
     setError("");
     toast("تم تحديث الملف الشخصي");

@@ -14,10 +14,10 @@ export default function AdminDashboard() {
   const store = useStore();
   const toast = useToast();
 
-  function reset() {
+  async function reset() {
     if (confirm("سيتم استرجاع البيانات التجريبية وحذف كل التغييرات. هل أنت متأكد؟")) {
-      store.resetDemo();
-      toast("تمت إعادة تعيين البيانات التجريبية", "info");
+      toast("جارٍ إعادة التعيين...", "info");
+      await store.resetDemo();
     }
   }
 

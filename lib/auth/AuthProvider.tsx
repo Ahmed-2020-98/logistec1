@@ -9,11 +9,8 @@ import {
   useState,
 } from "react";
 import type { User } from "@/lib/types";
-import { useStore } from "@/lib/store/StoreProvider";
-import { DEMO_OTP } from "@/lib/constants";
-import { genId, isValidSaudiPhone, normalizePhone } from "@/lib/utils";
+import { api, getToken, setToken } from "@/lib/api";
 
-const UID_KEY = "glx:auth:uid";
 const PENDING_KEY = "glx:auth:pending";
 
 type Result = { ok: true } | { ok: false; error: string };
@@ -23,40 +20,37 @@ interface AuthContextValue {
   isAdmin: boolean;
   ready: boolean;
   pendingPhone: string | null;
-  register: (data: { fullName: string; phone: string; password: string }) => Result;
-  requestOtp: (phone: string) => Result;
-  verifyOtp: (code: string) => Result;
-  resetPassword: (code: string, newPassword: string) => Result;
-  login: (phone: string, password: string) => Result;
-  logout: () => void;
-  updateProfile: (data: { fullName: string; phone: string }) => Result;
-  changePassword: (current: string, next: string) => Result;
+  register: (data: { fullName: string; phone: string; password: string }) => Promise<Result>;
+  requestOtp: (phone: string) => Promise<Result>;
+  verifyOtp: (code: string) => Promise<Result>;
+  resetPassword: (code: string, newPassword: string) => Promise<Result>;
+  login: (phone: string, password: string) => Promise<Result>;
+  logout: () => Promise<void>;
+  updateProfile: (data: { fullName: string; phone: string }) => Promise<Result>;
+  changePassword: (current: string, next: string) => Promise<Result>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const store = useStore();
-  const [uid, setUid] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [ready, setReady] = useState(false);
   const [pendingPhone, setPendingPhone] = useState<string | null>(null);
 
   useEffect(() => {
     try {
-      setUid(localStorage.getItem(UID_KEY));
       setPendingPhone(localStorage.getItem(PENDING_KEY));
     } catch {
       /* ignore */
     }
-  }, []);
-
-  const persistUid = useCallback((id: string | null) => {
-    setUid(id);
-    try {
-      if (id) localStorage.setItem(UID_KEY, id);
-      else localStorage.removeItem(UID_KEY);
-    } catch {
-      /* ignore */
-    }
+    (async () => {
+      if (getToken()) {
+        const res = await api.get<{ user: User }>("/auth/me");
+        if (res.ok) setUser(res.data.user);
+        else setToken(null);
+      }
+      setReady(true);
+    })();
   }, []);
 
   const persistPending = useCallback((phone: string | null) => {
@@ -69,103 +63,76 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const user = useMemo(
-    () => store.users.find((u) => u.id === uid) ?? null,
-    [store.users, uid],
-  );
-
   const value = useMemo<AuthContextValue>(() => {
     return {
       user,
       isAdmin: user?.role === "admin",
-      ready: store.ready,
+      ready,
       pendingPhone,
-      register: ({ fullName, phone, password }) => {
-        if (!fullName.trim()) return { ok: false, error: "الرجاء إدخال الاسم الكامل" };
-        if (!isValidSaudiPhone(phone))
-          return { ok: false, error: "رقم الجوال غير صحيح (مثال: 05XXXXXXXX)" };
-        if (password.length < 6)
-          return { ok: false, error: "كلمة المرور يجب أن تكون 6 أحرف على الأقل" };
-        const normalized = normalizePhone(phone);
-        if (store.users.some((u) => u.phone === normalized))
-          return { ok: false, error: "رقم الجوال مسجّل مسبقاً" };
-        const newUser: User = {
-          id: genId(),
-          fullName: fullName.trim(),
-          phone: normalized,
-          password,
-          isVerified: false,
-          role: "user",
-          createdAt: new Date().toISOString(),
-        };
-        store.addUser(newUser);
-        persistPending(normalized);
+      register: async ({ fullName, phone, password }) => {
+        const res = await api.post("/auth/register", { fullName, phone, password });
+        if (!res.ok) return { ok: false, error: res.error! };
+        persistPending(phone);
         return { ok: true };
       },
-      requestOtp: (phone) => {
-        const normalized = normalizePhone(phone);
-        if (!store.users.some((u) => u.phone === normalized))
-          return { ok: false, error: "لا يوجد حساب بهذا الرقم" };
-        persistPending(normalized);
-        // Mock Authentica send: a real integration would POST to the API here.
+      requestOtp: async (phone) => {
+        const res = await api.post("/auth/request-otp", { phone });
+        if (!res.ok) return { ok: false, error: res.error! };
+        persistPending(phone);
         return { ok: true };
       },
-      verifyOtp: (code) => {
-        if (!pendingPhone) return { ok: false, error: "انتهت الجلسة، الرجاء إعادة التسجيل" };
-        if (code.trim() !== DEMO_OTP)
-          return { ok: false, error: `رمز التحقق غير صحيح (رمز التجربة: ${DEMO_OTP})` };
-        const target = store.users.find((u) => u.phone === pendingPhone);
-        if (!target) return { ok: false, error: "تعذّر العثور على الحساب" };
-        store.updateUser({ ...target, isVerified: true });
-        persistUid(target.id);
-        persistPending(null);
-        return { ok: true };
-      },
-      resetPassword: (code, newPassword) => {
+      verifyOtp: async (code) => {
         if (!pendingPhone) return { ok: false, error: "انتهت الجلسة، الرجاء إعادة المحاولة" };
-        if (code.trim() !== DEMO_OTP)
-          return { ok: false, error: `رمز التحقق غير صحيح (رمز التجربة: ${DEMO_OTP})` };
-        const target = store.users.find((u) => u.phone === pendingPhone);
-        if (!target) return { ok: false, error: "تعذّر العثور على الحساب" };
-        if (newPassword.length < 6)
-          return { ok: false, error: "كلمة المرور يجب أن تكون 6 أحرف على الأقل" };
-        // Reset the password (and mark verified) without logging in;
-        // the user then signs in with the new password.
-        store.updateUser({ ...target, password: newPassword, isVerified: true });
+        const res = await api.post<{ token: string; user: User }>("/auth/verify-otp", {
+          phone: pendingPhone,
+          code,
+        });
+        if (!res.ok) return { ok: false, error: res.error! };
+        setToken(res.data.token);
+        setUser(res.data.user);
         persistPending(null);
         return { ok: true };
       },
-      login: (phone, password) => {
-        const normalized = normalizePhone(phone);
-        const target = store.users.find((u) => u.phone === normalized);
-        if (!target || target.password !== password)
-          return { ok: false, error: "رقم الجوال أو كلمة المرور غير صحيحة" };
-        if (!target.isVerified) {
-          persistPending(normalized);
-          return { ok: false, error: "الحساب غير مُفعّل، الرجاء التحقق من رقم الجوال" };
+      resetPassword: async (code, newPassword) => {
+        if (!pendingPhone) return { ok: false, error: "انتهت الجلسة، الرجاء إعادة المحاولة" };
+        const res = await api.post("/auth/reset-password", {
+          phone: pendingPhone,
+          code,
+          password: newPassword,
+        });
+        if (!res.ok) return { ok: false, error: res.error! };
+        persistPending(null);
+        return { ok: true };
+      },
+      login: async (phone, password) => {
+        const res = await api.post<{ token: string; user: User }>("/auth/login", { phone, password });
+        if (!res.ok) {
+          // Account not verified — remember the phone for the OTP screen.
+          if (res.status === 403) persistPending(phone);
+          return { ok: false, error: res.error! };
         }
-        persistUid(target.id);
+        setToken(res.data.token);
+        setUser(res.data.user);
         return { ok: true };
       },
-      logout: () => persistUid(null),
-      updateProfile: ({ fullName, phone }) => {
-        if (!user) return { ok: false, error: "غير مسجّل الدخول" };
-        if (!isValidSaudiPhone(phone)) return { ok: false, error: "رقم الجوال غير صحيح" };
-        const normalized = normalizePhone(phone);
-        if (store.users.some((u) => u.phone === normalized && u.id !== user.id))
-          return { ok: false, error: "رقم الجوال مستخدم في حساب آخر" };
-        store.updateUser({ ...user, fullName: fullName.trim(), phone: normalized });
+      logout: async () => {
+        await api.post("/auth/logout").catch(() => undefined);
+        setToken(null);
+        setUser(null);
+      },
+      updateProfile: async ({ fullName, phone }) => {
+        const res = await api.put<{ user: User }>("/auth/profile", { fullName, phone });
+        if (!res.ok) return { ok: false, error: res.error! };
+        setUser(res.data.user);
         return { ok: true };
       },
-      changePassword: (current, next) => {
-        if (!user) return { ok: false, error: "غير مسجّل الدخول" };
-        if (user.password !== current) return { ok: false, error: "كلمة المرور الحالية غير صحيحة" };
-        if (next.length < 6) return { ok: false, error: "كلمة المرور الجديدة قصيرة جداً" };
-        store.updateUser({ ...user, password: next });
+      changePassword: async (current, next) => {
+        const res = await api.put("/auth/password", { current, password: next });
+        if (!res.ok) return { ok: false, error: res.error! };
         return { ok: true };
       },
     };
-  }, [user, pendingPhone, store, persistUid, persistPending]);
+  }, [user, ready, pendingPhone, persistPending]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

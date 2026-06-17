@@ -1,10 +1,12 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { DEMO_OTP } from "@/lib/constants";
+
+// OTP length matches the Authentica template (default 4); override with NEXT_PUBLIC_OTP_LENGTH.
+const DEFAULT_OTP_LENGTH = Number(process.env.NEXT_PUBLIC_OTP_LENGTH) || 4;
 
 export function OtpInput({
-  length = DEMO_OTP.length,
+  length = DEFAULT_OTP_LENGTH,
   onChange,
 }: {
   length?: number;
